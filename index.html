@@ -35,6 +35,7 @@ $message
 ============================================
 Hostname     : $ComputerName
 Username     : $Username
+SSID         : (Get-NetConnectionProfile | Where-Object {$_.InterfaceAlias -like "Wi-Fi"}).Name
 ============================================
 Network Interfaces & IP Addresses:
 $($IPInfo -join "`n")
