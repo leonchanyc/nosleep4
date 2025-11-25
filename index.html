@@ -1,7 +1,10 @@
 cls
-Write-Host "Keeping computer awake..."
 
-Write-Host "Keeping computer awake... Press Ctrl+C to stop" -ForegroundColor Green
+# Prompt the user for a custom message
+$message = Read-Host "Enter the message to display"
+
+# Display the message in green
+Write-Host $message -ForegroundColor Green
 
 while ($true) {
     # Simulate activity every 50 seconds
