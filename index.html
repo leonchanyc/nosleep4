@@ -1,24 +1,61 @@
-cls
-
 # Set window title
-$host.UI.RawUI.WindowTitle = "No Sleep"
+$host.UI.RawUI.WindowTitle = "No Sleep - Computer Awake"
 
 # Set console colors: yellow text on black background
 $Host.UI.RawUI.ForegroundColor = "Yellow"
 $Host.UI.RawUI.BackgroundColor = "Black"
-cls  # Clear screen to apply colors
+cls
 
-# Prompt the user for a custom message
-$message = Read-Host "Enter the message to display"
+# Prompt for custom message (with a nice default)
+$message = Read-Host "Enter the message to display (press Enter for default)"
+if ([string]::IsNullOrWhiteSpace($message)) { $message = "This computer is being kept awake..." }
 
 cls
 
-# Display the message with line break
-Write-Host "Keeping computer awake... `n$message" -ForegroundColor Yellow -BackgroundColor Black
+# Gather system information once
+$ComputerName = $env:COMPUTERNAME
+$Username     = $env:USERNAME
 
+# Get all active network adapters with IP addresses (exclude inactive/loopback/virtual if you want cleaner output)
+$IPInfo = Get-NetIPConfiguration | Where-Object { $_.IPv4Address -or $_.IPv6Address } | ForEach-Object {
+    $adapter = $_.InterfaceAlias
+    $ipv4 = ($_.IPv4Address.IPAddress -join ", ")
+    $ipv6 = ($_.IPv6Address.IPAddress -join ", ")
+    "$adapter : $ipv4 $(if($ipv6 -and $ipv6 -notlike "fe80*") { ' | ' + $ipv6 })"
+} | Where-Object { $_ -match "\S" }  # Remove empty lines
+
+if (-not $IPInfo) { $IPInfo = "No active network interfaces found" }
+
+# Display header once
+Write-Host @"
+Keeping this computer awake..
+
+$message
+
+============================================
+Hostname     : $ComputerName
+Username     : $Username
+============================================
+Network Interfaces & IP Addresses:
+$($IPInfo -join "`n")
+============================================
+
+"@ -ForegroundColor Yellow -BackgroundColor Black
+
+# Main loop - prevents sleep and refreshes info every 50 seconds
 while ($true) {
-    # Simulate activity every 50 seconds (toggle Scroll Lock safely)
+    # Simulate activity by toggling Scroll Lock twice (safe, no visual disturbance)
     $wsh = New-Object -ComObject WScript.Shell
     $wsh.SendKeys("{SCROLLLOCK}{SCROLLLOCK}")
+
+    # Optional: Refresh IP info every cycle (uncomment next 6 lines if you want live updates)
+    <#
+    cls
+    $IPInfo = Get-NetIPConfiguration | Where-Object { $_.IPv4Address -or $_.IPv6Address } | ForEach-Object {
+        "$($_.InterfaceAlias): $($_.IPv4Address.IPAddress -join ', ') $(if($_.IPv6Address) { ' | ' + ($_.IPv6Address.IPAddress -join ', ') })"
+    } | Where-Object { $_ -match "\S" }
+    Write-Host "Keeping computer AWAKE - $(Get-Date -Format 'HH:mm:ss')`nHostname: $ComputerName | User: $Username`n$($IPInfo -join "`n")`n$message" -ForegroundColor Yellow
+    #>
+
     Start-Sleep -Seconds 50
 }
