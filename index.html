@@ -1,14 +1,19 @@
 cls
 
+# Set window title
+$host.UI.RawUI.WindowTitle = "No Sleep"
+
 # Prompt the user for a custom message
 $message = Read-Host "Enter the message to display"
 
+cls
+
 # Display the message in green
-Write-Host $message -ForegroundColor Green
+Write-Host "Keeping computer awake... $message" -ForegroundColor Green
 
 while ($true) {
     # Simulate activity every 50 seconds
     $wsh = New-Object -ComObject WScript.Shell
-    $wsh.SendKeys("{NUMLOCK}{NUMLOCK}")
+    $wsh.SendKeys("{SCROLLLOCK}{SCROLLLOCK}")
     Start-Sleep -Seconds 50
 }
